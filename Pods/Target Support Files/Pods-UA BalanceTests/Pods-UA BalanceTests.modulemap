@@ -1,0 +1,6 @@
+framework module Pods_UA_BalanceTests {
+  umbrella header "Pods-UA BalanceTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
