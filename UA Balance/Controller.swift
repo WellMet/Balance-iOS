@@ -22,4 +22,23 @@ class Controller: Codable {
         state = "idle"
         user = Profile(cont: self)
     }
+    
+    func setSpeed(s: Int) {
+        chosenSpeed = s
+        user.voice.chosenSpeed = s
+    }
+    
+    func setTime(t: Int) {
+        chosenTime = t
+        user.voice.chosenTime = t
+    }
+    
+    func setDif(d: Int) {
+        chosenDif = d
+        if d == 1 {
+            user.voice.generateOrdered()
+        } else {
+            user.voice.generateRandom()
+        }
+    }
 }

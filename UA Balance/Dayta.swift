@@ -24,10 +24,29 @@ class Dayta: Codable {
     }
     
     func writeData() {
-        
+        do {
+            let dumb = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("history.json")
+            let hdata = try JSONEncoder().encode(history)
+            try hdata.write(to: dumb)
+            print("wrote successful")
+        } catch {
+            print("cannot write there yo")
+        }
     }
     
     func readData() -> Bool {
+        let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("history.json")
+        do {
+            let data = try Data(contentsOf: path, options: .mappedIfSafe)
+            let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
+            if let jsonResult = jsonResult as? [String: [[String: Int]]] {
+                history = jsonResult
+                print("read that shit finally")
+                return true
+            }
+        } catch {
+            print("cannot read history")
+        }
         return false
     }
     
@@ -43,9 +62,9 @@ class Dayta: Codable {
     
     func getProgressScore(week: String, of: String) -> Int {
         let attempts = history[week]
-        var score: Double = 0
+        var score: Double = 0.0
         if (of == "attempts") {
-            score = Double(attempts!.count / goals["attempts"]!)
+            score = Double(Double(attempts!.count) / Double(goals["attempts"]!))
             return Int(((score * Profile.RUN_WEIGHT) * 100))
         }
         else if (of == "speed"){
@@ -66,12 +85,43 @@ class Dayta: Codable {
     }
 
     func getAverageOf(week: String, of: String) -> Double {
-        var sum: Double = 0
+        var sum: Double = 0.0
         if (history[week]!.count > 0) {
             for attempt in history[week]! {
                 sum += Double(attempt[of]!)
             }
+            let len = Double(history[week]!.count)
+            return sum / len
+        } else {
+            return 0.0
         }
-        return sum
     }
+    
+    func addDayta(dayta: [String: Int]) {
+        let calendar = Calendar.current
+        let weekOfYear = calendar.component(.weekOfYear, from: Date())
+        if history[String(weekOfYear)] != nil {
+            history[String(weekOfYear)]?.append(dayta)
+        } else {
+            var newDayta = [[String: Int]]()
+            newDayta.append(dayta)
+            history[String(weekOfYear)] = newDayta
+        }
+        writeData()
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 }

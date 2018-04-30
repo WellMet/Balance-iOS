@@ -21,35 +21,114 @@ class Profile: Codable {
     static let DIF_WEIGHT = 0.10
     
     init (cont: Controller) {
-        if (!readSettings()) {
-            //settings["textSize"] = 32
-            objects = [String]()
-            settings = [String: Int]()
-            goals = [String: Int]()
-            
-            objects.append("green");
-            objects.append("blue");
-            objects.append("red");
-            //settings["volume"] = maxVolume
-            //settings.put("brightness", 255);
-            //settings.put("maxVolume", maxVolume);
-            goals["attempts"] = 3
-            goals["difficulty"] = 1
-            goals["speed"] = 5
-            goals["time"] = 900
-        }
+        objects = [String]()
+        settings = [String: Int]()
+        goals = [String: Int]()
+        readSettings()
         voice = VoiceGeneration(settings: settings, objects: objects)
         controller = cont
         data = Dayta(goals: goals)
     }
     
-    func writeSettings() {
+    func readSettings() {
+        /*
+        var path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("settings.json")
+        do {
+            let data = try Data(contentsOf: path, options: .mappedIfSafe)
+            let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
+            if let jsonResult = jsonResult as? [String: Int] {
+                settings = jsonResult
+                print("read settings finally")
+            }
+        } catch {
+            print("couldn't read settings")
+        }
+        path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("goals.json")
+        do {
+            let data = try Data(contentsOf: path, options: .mappedIfSafe)
+            let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
+            if let jsonResult = jsonResult as? [String: Int] {
+                goals = jsonResult
+                print("read goals finally")
+            }
+        } catch {
+            print("couldn't read goals")
+        }
+        path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("objects.json")
+        do {
+            let data = try Data(contentsOf: path, options: .mappedIfSafe)
+            let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
+            if let jsonResult = jsonResult as? [String] {
+                objects = jsonResult
+                print("read objects finally")
+                return true
+            }
+        } catch {
+            print("couldn't read objects")
+        }
+        return false
+ */
 
+        let appDefaults = [String:AnyObject]()
+        UserDefaults.standard.register(defaults: appDefaults)
+        if let obj1 = UserDefaults.standard.string(forKey: "obj1") {
+            objects.append(obj1)
+        } else {
+            objects.append("red")
+        }
+        if let obj2 = UserDefaults.standard.string(forKey: "obj2") {
+            objects.append(obj2)
+        } else {
+            objects.append("blue")
+        }
+        if let obj3 = UserDefaults.standard.string(forKey: "obj3") {
+            objects.append(obj3)
+        } else {
+            objects.append("green")
+        }
+        goals["attempts"] = UserDefaults.standard.integer(forKey: "attempts")
+        goals["speed"] = UserDefaults.standard.integer(forKey: "speed")
+        let m = UserDefaults.standard.integer(forKey: "minutes")
+        var s = UserDefaults.standard.integer(forKey: "seconds")
+        if m == 15 {
+            s = 0
+        }
+        goals["time"] = m*60 + s
+        goals["difficulty"] = UserDefaults.standard.bool(forKey: "difficulty") ? 2 : 1
+        
+        if goals["attempts"] == 0 {
+            goals["attempts"] = 3
+        }
+        
+        if goals["speed"] == 0 {
+            goals["speed"] = 5
+        }
+        
+        if goals["time"] == 0 {
+            goals["time"] = 900
+        }
+        
+        if goals["difficulty"] == nil {
+            goals["difficulty"] = 1
+        }
     }
     
-    func readSettings() -> Bool {
-        
-        return false
+    func writeSettings() {
+        do {
+            let sdata = try JSONEncoder().encode(settings)
+            let gdata = try JSONEncoder().encode(goals)
+            let odata = try JSONEncoder().encode(objects)
+            
+            var path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("settings.json")
+            try sdata.write(to: path)
+            path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("goals.json")
+            try gdata.write(to: path)
+            path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("objects.json")
+            try odata.write(to: path)
+            print("we saved that shit")
+        } catch {
+            print("cannot save settings")
+        }
     }
     
     func setGoals(goals: Dictionary<String, Int>) {
